@@ -1,0 +1,40 @@
+version: '3.2'
+
+services:
+    mongo:
+        container_name: ertisauth-mongo
+        image: mongo
+        restart: always
+        volumes:
+            - ${HOME}/.docker/volumes/ertisauth:/data/db
+        ports:
+            - "27017:27017"
+    web_api:
+        container_name: ertisauth
+        image: ertugrulozcan/ertisauth:latest
+        ports:
+            - "9716:80"
+        environment:
+            - Database__Host=ertisauth-mongo
+        depends_on:
+            - mongo
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
+    web_ui:
+        container_name: ertisauth-ui
+        build: 
+          context: .
+        ports:
+            - "3002:3002"
+        environment:
+            - ERTISAUTH_API_URL=http://web_api:9716/api/v1
+            - ERTISAUTH_MEMBERSHIP_ID=62644cf10a0fc6c3dba34fd0
+            - MEDIA_API_URL=http://web_api:9716/api/v1
+            - GOOGLE_MAPS_API_KEY=AIzaSyCXg7kCjRNzjgFgVhSUnk8J4TP2EZF4LxA
+        depends_on:
+            - web_api
+            - mongo
+        volumes:
+            - ${HOME}/.microsoft/usersecrets/:/root/.microsoft/usersecrets
+            - ${HOME}/.aspnet/https:/root/.aspnet/https/
